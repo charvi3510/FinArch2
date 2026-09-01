@@ -186,9 +186,28 @@ class ProfileService:
         if not profile:
             profile = FinancialProfile(user_id=user.id)
             db.add(profile)
+            db.commit()
+            db.refresh(profile)
             
         for key, value in update_data.model_dump(exclude={"goals"}).items():
             setattr(profile, key, value)
+            
+        # Synchronize goals if provided
+        if update_data.goals is not None:
+            db.query(Goal).filter(Goal.profile_id == profile.id).delete()
+            for g in update_data.goals:
+                new_g = Goal(
+                    profile_id=profile.id,
+                    name=g.name,
+                    category=g.category,
+                    target_amount=g.target_amount,
+                    current_amount=g.current_amount,
+                    target_year=g.target_year,
+                    monthly_contribution=g.monthly_contribution,
+                    priority=g.priority,
+                    is_essential=g.is_essential
+                )
+                db.add(new_g)
             
         db.commit()
         db.refresh(profile)
