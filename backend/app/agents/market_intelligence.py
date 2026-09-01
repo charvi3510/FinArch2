@@ -1,4 +1,5 @@
 """PS Sprint 1: deterministic multi-agent market intelligence and local RAG."""
+from concurrent.futures import ThreadPoolExecutor
 from dataclasses import dataclass, asdict
 from typing import Any, Dict, List
 import re
@@ -30,6 +31,21 @@ def retrieve(query: str, top_k: int = 3) -> List[Dict[str, str]]:
     return [doc for _, doc in ranked[:top_k]]
 
 
+def _momentum(price: float, ids: List[str]) -> AgentResult:
+    signal = "BULLISH" if price > 2 else "BEARISH" if price < -2 else "NEUTRAL"
+    return AgentResult("momentum_agent", signal, price, min(98, 55 + abs(price) * 8), f"Price change is {price:+.1f}% over the supplied window.", ids)
+
+
+def _volume(price: float, volume: float, ids: List[str]) -> AgentResult:
+    signal = "ACCUMULATION" if volume > 15 and price > 0 else "DISTRIBUTION" if volume > 15 and price < 0 else "NORMAL"
+    return AgentResult("volume_anomaly_agent", signal, volume, min(97, 60 + abs(volume) * 1.2), f"Volume change is {volume:+.1f}%; anomaly threshold is 15%.", ids)
+
+
+def _sentiment(sentiment: float, ids: List[str]) -> AgentResult:
+    signal = "POSITIVE" if sentiment > 0.25 else "NEGATIVE" if sentiment < -0.25 else "MIXED"
+    return AgentResult("sentiment_agent", signal, sentiment, min(96, 60 + abs(sentiment) * 30), f"Sentiment score is {sentiment:+.2f} on a -1 to +1 scale.", ids)
+
+
 def run_market_agents(snapshot: Dict[str, Any], profile: Dict[str, Any]) -> Dict[str, Any]:
     price = float(snapshot.get("price_change_pct", 0))
     volume = float(snapshot.get("volume_change_pct", 0))
@@ -38,14 +54,12 @@ def run_market_agents(snapshot: Dict[str, Any], profile: Dict[str, Any]) -> Dict
     horizon = int(profile.get("investment_horizon_years", 7))
     evidence = retrieve("market momentum volume sentiment risk diversification debt liquidity")
     ids = [x["id"] for x in evidence]
-    momentum_signal = "BULLISH" if price > 2 else "BEARISH" if price < -2 else "NEUTRAL"
-    volume_signal = "ACCUMULATION" if volume > 15 and price > 0 else "DISTRIBUTION" if volume > 15 and price < 0 else "NORMAL"
-    sentiment_signal = "POSITIVE" if sentiment > 0.25 else "NEGATIVE" if sentiment < -0.25 else "MIXED"
-    agents = [
-        AgentResult("momentum_agent", momentum_signal, price, min(98, 55 + abs(price) * 8), f"Price change is {price:+.1f}% over the supplied window.", ids),
-        AgentResult("volume_anomaly_agent", volume_signal, volume, min(97, 60 + abs(volume) * 1.2), f"Volume change is {volume:+.1f}%; anomaly threshold is 15%.", ids),
-        AgentResult("sentiment_agent", sentiment_signal, sentiment, min(96, 60 + abs(sentiment) * 30), f"Sentiment score is {sentiment:+.2f} on a -1 to +1 scale.", ids),
-    ]
+
+    # Independent specialists execute concurrently over the same raw snapshot.
+    with ThreadPoolExecutor(max_workers=3, thread_name_prefix="finarch-agent") as pool:
+        futures = [pool.submit(_momentum, price, ids), pool.submit(_volume, price, volume, ids), pool.submit(_sentiment, sentiment, ids)]
+        agents = [f.result() for f in futures]
+
     raw_score = price * 0.35 + max(min(volume, 100), -100) * 0.15 + sentiment * 10
     profile_bias = {"conservative": -12, "moderate": 0, "aggressive": 12}.get(risk, 0)
     horizon_bias = 5 if horizon >= 10 else 0 if horizon >= 5 else -5
