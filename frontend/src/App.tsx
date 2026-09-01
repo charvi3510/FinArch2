@@ -13,19 +13,18 @@ import { WhatIfSimulatorPage } from './pages/WhatIfSimulatorPage';
 import { RiskAnalysisPage } from './pages/RiskAnalysisPage';
 import { AdvisorPage } from './pages/AdvisorPage';
 import { SettingsPage } from './pages/SettingsPage';
+import { IntelligencePage } from './pages/IntelligencePage';
 
 export function App() {
   return (
     <FinancialProvider>
       <HashRouter>
         <Routes>
-          {/* Landing Page */}
           <Route path="/landing" element={<LandingPage />} />
-
-          {/* App Dashboard Routes wrapped in AppLayout */}
           <Route path="/" element={<AppLayout />}>
             <Route index element={<Navigate to="/overview" replace />} />
             <Route path="overview" element={<OverviewPage />} />
+            <Route path="intelligence" element={<IntelligencePage />} />
             <Route path="twin" element={<FinancialTwinPage />} />
             <Route path="decision" element={<DecisionEnginePage />} />
             <Route path="optimizer" element={<OptimizerPage />} />
@@ -36,8 +35,6 @@ export function App() {
             <Route path="advisor" element={<AdvisorPage />} />
             <Route path="settings" element={<SettingsPage />} />
           </Route>
-
-          {/* Catch-all fallback */}
           <Route path="*" element={<Navigate to="/overview" replace />} />
         </Routes>
       </HashRouter>
