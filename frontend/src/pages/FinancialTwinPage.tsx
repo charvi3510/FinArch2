@@ -1,589 +1,425 @@
 import React, { useState } from 'react';
 import { useFinancial } from '../context/FinancialContext';
+import { formatCurrency, formatPercentage } from '../utils/formatters';
 import { FinancialProfile } from '../types';
-import { formatCurrency, formatFullCurrency } from '../utils/formatters';
 import {
-  BrainCircuit,
+  Layers,
   Save,
   RotateCcw,
-  DollarSign,
-  TrendingDown,
-  TrendingUp,
-  CreditCard,
-  PiggyBank,
+  User,
+  ArrowDown,
+  ArrowRight,
   Shield,
-  Layers,
-  CheckCircle,
-  HelpCircle
+  Activity,
+  DollarSign,
+  CreditCard,
+  PieChart,
+  Radio,
+  CheckCircle2
 } from 'lucide-react';
 
 export const FinancialTwinPage: React.FC = () => {
-  const { profile, metrics, updateProfile, resetDemoProfile, currency, isLoading } = useFinancial();
-  const [formData, setFormData] = useState<FinancialProfile>(profile);
-  const [activeTab, setActiveTab] = useState<'income' | 'expenses' | 'assets' | 'liabilities' | 'sip' | 'risk'>('income');
+  const { profile, updateProfile, resetDemoProfile, metrics, currency, isLoading } = useFinancial();
 
-  // Handle number input changes
-  const handleInputChange = (field: keyof FinancialProfile, val: string | number) => {
-    setFormData((prev) => ({
-      ...prev,
-      [field]: typeof val === 'string' ? parseFloat(val) || 0 : val
-    }));
+  const [formData, setFormData] = useState<FinancialProfile>({ ...profile });
+  const [activeTab, setActiveTab] = useState<
+    'inflow' | 'outflow' | 'assets' | 'liabilities' | 'sip' | 'risk'
+  >('inflow');
+  const [isSaved, setIsSaved] = useState(false);
+
+  React.useEffect(() => {
+    setFormData({ ...profile });
+  }, [profile]);
+
+  const handleInputChange = (field: keyof FinancialProfile, value: any) => {
+    setFormData((prev) => ({ ...prev, [field]: value }));
   };
 
   const handleSave = async (e: React.FormEvent) => {
     e.preventDefault();
     await updateProfile(formData);
+    setIsSaved(true);
+    setTimeout(() => setIsSaved(false), 2000);
   };
 
-  const handleReset = async () => {
-    await resetDemoProfile();
-    setFormData(profile);
-  };
+  const tabs = [
+    { id: 'inflow', label: '1. Monthly Inflow' },
+    { id: 'outflow', label: '2. Monthly Expenses' },
+    { id: 'assets', label: '3. Balance Sheet Assets' },
+    { id: 'liabilities', label: '4. Liabilities & Debt' },
+    { id: 'sip', label: '5. Systematic SIPs' },
+    { id: 'risk', label: '6. Risk & Horizon' },
+  ];
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-300">
-      {/* Top Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+    <div className="space-y-6 animate-in fade-in duration-300">
+      {/* Header with Live Status */}
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-white/[0.08]">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-100 font-mono tracking-tight">
-              FINANCIAL <span className="text-cyan-400">DIGITAL TWIN</span>
-            </h1>
-            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-emerald-500/10 text-emerald-400 border border-emerald-500/20">
-              Live Synchronized
+            <span className="tech-badge bg-mint-500/10 text-mint-400 border border-mint-500/30 flex items-center gap-1.5">
+              <span className="w-1.5 h-1.5 rounded-full bg-mint-400 animate-ping"></span>
+              MODEL STATUS: LIVE
             </span>
+            <span className="tech-label text-slate-400">FINANCIAL IDENTITY MODEL</span>
           </div>
-          <p className="text-xs sm:text-sm text-slate-400 mt-1">
-            Complete mathematical replication of your balance sheet, cash flows, liabilities, and risk appetite.
-          </p>
+          <h1 className="text-2xl sm:text-3xl font-extrabold text-white font-mono tracking-tight mt-1">
+            FINANCIAL DIGITAL TWIN
+          </h1>
         </div>
 
         <div className="flex items-center gap-3">
           <button
-            type="button"
-            onClick={handleReset}
+            onClick={resetDemoProfile}
             disabled={isLoading}
-            className="px-4 py-2.5 rounded-xl bg-slate-900 hover:bg-slate-800 border border-slate-700 text-xs font-semibold text-slate-200 transition-colors flex items-center gap-1.5"
+            className="px-3.5 py-1.5 rounded-md bg-obsidian-900 hover:bg-obsidian-850 border border-white/[0.12] text-xs font-mono text-slate-300 hover:text-white transition-all flex items-center gap-1.5"
           >
             <RotateCcw className="w-3.5 h-3.5" />
-            <span>Reset Demo Profile</span>
+            <span>Reset Demo</span>
           </button>
 
           <button
-            type="button"
             onClick={handleSave}
             disabled={isLoading}
-            className="px-5 py-2.5 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-bold text-xs shadow-glow-cyan transition-all flex items-center gap-1.5"
+            className="px-4 py-1.5 rounded-md bg-mint-500 hover:bg-mint-400 text-obsidian-950 font-mono font-bold text-xs shadow-mint-glow transition-all flex items-center gap-1.5"
           >
-            <Save className="w-4 h-4" />
-            <span>Save & Recalculate Twin</span>
+            {isSaved ? <CheckCircle2 className="w-3.5 h-3.5" /> : <Save className="w-3.5 h-3.5" />}
+            <span>{isSaved ? 'Recalculated' : 'Save & Recalculate'}</span>
           </button>
         </div>
       </div>
 
-      {/* Live Twin Calculated Metrics Bar */}
-      <div className="glass-panel p-5 rounded-2xl border border-cyan-500/20 grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-6 gap-4">
-        <div>
-          <span className="text-[11px] text-slate-400 uppercase tracking-wider block">Calculated Net Worth</span>
-          <span className="text-lg sm:text-xl font-mono font-bold text-cyan-400 mt-1 block">
-            {formatCurrency(metrics.net_worth, currency)}
+      {/* SIGNATURE VISUALIZATION: Central Financial Identity Tree */}
+      <div className="fin-panel p-6 sm:p-8 grid-pattern relative overflow-hidden">
+        <div className="flex items-center justify-between pb-4 border-b border-white/[0.08] mb-6">
+          <span className="tech-label text-slate-300">FINANCIAL IDENTITY ARCHITECTURE</span>
+          <span className="tech-badge bg-obsidian-900 border border-white/[0.08] text-slate-400">
+            AUTONOMOUS TWIN ENGINE
           </span>
         </div>
-        <div>
-          <span className="text-[11px] text-slate-400 uppercase tracking-wider block">Monthly Surplus</span>
-          <span className="text-lg sm:text-xl font-mono font-bold text-emerald-400 mt-1 block">
-            {formatCurrency(metrics.monthly_surplus, currency)}
-          </span>
-        </div>
-        <div>
-          <span className="text-[11px] text-slate-400 uppercase tracking-wider block">Savings Rate</span>
-          <span className="text-lg sm:text-xl font-mono font-bold text-purple-400 mt-1 block">
-            {metrics.savings_rate_pct}%
-          </span>
-        </div>
-        <div>
-          <span className="text-[11px] text-slate-400 uppercase tracking-wider block">Emergency Buffer</span>
-          <span className="text-lg sm:text-xl font-mono font-bold text-amber-400 mt-1 block">
-            {metrics.emergency_fund_coverage_months} Months
-          </span>
-        </div>
-        <div>
-          <span className="text-[11px] text-slate-400 uppercase tracking-wider block">Debt-to-Income (DTI)</span>
-          <span className="text-lg sm:text-xl font-mono font-bold text-rose-400 mt-1 block">
-            {metrics.debt_to_income_pct}%
-          </span>
-        </div>
-        <div>
-          <span className="text-[11px] text-slate-400 uppercase tracking-wider block">Equity Allocation</span>
-          <span className="text-lg sm:text-xl font-mono font-bold text-blue-400 mt-1 block">
-            {metrics.equity_allocation_pct}%
-          </span>
+
+        {/* Tree Topology Structure */}
+        <div className="flex flex-col items-center space-y-4">
+          {/* Top Node: YOU */}
+          <div className="px-6 py-2.5 rounded-lg bg-obsidian-900 border border-white/[0.15] text-center shadow-panel">
+            <span className="tech-label text-mint-400 block text-[9px]">ROOT IDENTITY</span>
+            <span className="text-sm font-mono font-extrabold text-white">YOU (PRIMARY TWIN)</span>
+          </div>
+
+          <div className="w-0.5 h-4 bg-white/[0.15]"></div>
+
+          {/* Middle 3 Branches: CASH | ASSETS | DEBT */}
+          <div className="w-full max-w-4xl grid grid-cols-1 sm:grid-cols-3 gap-4 text-center">
+            {/* CASH */}
+            <div className="bg-obsidian-900 border border-white/[0.08] p-4 rounded-lg space-y-1">
+              <span className="tech-label text-cyan-400">01. LIQUID CASH & SURPLUS</span>
+              <span className="text-xl font-mono font-extrabold text-white block">
+                {formatCurrency(metrics.total_liquid_cash, currency)}
+              </span>
+              <span className="text-[10px] font-mono text-slate-400">
+                +{formatCurrency(metrics.monthly_surplus, currency)}/mo surplus
+              </span>
+            </div>
+
+            {/* ASSETS */}
+            <div className="bg-obsidian-900 border border-mint-500/30 p-4 rounded-lg space-y-1">
+              <span className="tech-label text-mint-400">02. TOTAL ASSET BASE</span>
+              <span className="text-xl font-mono font-extrabold text-white block">
+                {formatCurrency(metrics.total_investments + metrics.total_liquid_cash, currency)}
+              </span>
+              <span className="text-[10px] font-mono text-slate-400">
+                Equity, Debt, Gold, FDs
+              </span>
+            </div>
+
+            {/* DEBT */}
+            <div className="bg-obsidian-900 border border-crimson-500/30 p-4 rounded-lg space-y-1">
+              <span className="tech-label text-crimson-400">03. TOTAL LIABILITIES</span>
+              <span className="text-xl font-mono font-extrabold text-white block">
+                {formatCurrency(metrics.total_debt, currency)}
+              </span>
+              <span className="text-[10px] font-mono text-slate-400">
+                {metrics.debt_to_income_pct}% DTI Ratio
+              </span>
+            </div>
+          </div>
+
+          <div className="w-0.5 h-4 bg-white/[0.15]"></div>
+
+          {/* Bottom Convergence: FINANCIAL HEALTH & NET WORTH */}
+          <div className="px-8 py-3 rounded-lg bg-obsidian-900 border border-mint-500/50 text-center shadow-mint-glow">
+            <span className="tech-label text-mint-400 block text-[9px]">SYNTHESIZED POSITION</span>
+            <span className="text-xl sm:text-2xl font-mono font-extrabold text-white tracking-tight">
+              NET WORTH: {formatCurrency(metrics.net_worth, currency)}
+            </span>
+          </div>
         </div>
       </div>
 
-      {/* Tabs Navigation */}
-      <div className="flex overflow-x-auto gap-2 border-b border-slate-800 pb-2">
-        {[
-          { id: 'income', label: '1. Inflow & Income', icon: DollarSign },
-          { id: 'expenses', label: '2. Monthly Expenses', icon: TrendingDown },
-          { id: 'assets', label: '3. Assets & Savings', icon: PiggyBank },
-          { id: 'liabilities', label: '4. Liabilities & Debt', icon: CreditCard },
-          { id: 'sip', label: '5. Systematic Investments', icon: TrendingUp },
-          { id: 'risk', label: '6. Risk & Horizons', icon: Shield },
-        ].map((tab) => {
-          const Icon = tab.icon;
-          const isActive = activeTab === tab.id;
-          return (
+      {/* TABBED DIRECT EDITING FORM */}
+      <form onSubmit={handleSave} className="fin-panel p-6 sm:p-8 space-y-6">
+        {/* Tab Selection */}
+        <div className="flex flex-wrap items-center gap-2 border-b border-white/[0.08] pb-4">
+          {tabs.map((tab) => (
             <button
               key={tab.id}
+              type="button"
               onClick={() => setActiveTab(tab.id as any)}
-              className={`flex items-center gap-2 px-4 py-2.5 rounded-xl text-xs font-semibold whitespace-nowrap transition-all ${
-                isActive
-                  ? 'bg-cyan-500/20 text-cyan-300 border border-cyan-500/40 shadow-glow-cyan'
-                  : 'bg-slate-900/60 text-slate-400 hover:text-slate-200 border border-slate-800'
+              className={`px-3.5 py-1.5 rounded-md text-xs font-mono font-semibold transition-all ${
+                activeTab === tab.id
+                  ? 'bg-mint-500 text-obsidian-950 font-bold shadow-sm'
+                  : 'bg-obsidian-900 border border-white/[0.08] text-slate-400 hover:text-white hover:bg-obsidian-850'
               }`}
             >
-              <Icon className="w-4 h-4" />
-              <span>{tab.label}</span>
+              {tab.label}
             </button>
-          );
-        })}
-      </div>
+          ))}
+        </div>
 
-      {/* Form Content */}
-      <form onSubmit={handleSave} className="space-y-6">
-        {/* Tab 1: Income */}
-        {activeTab === 'income' && (
-          <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-slate-800 space-y-6 animate-in fade-in duration-200">
-            <h3 className="text-lg font-bold text-slate-100 flex items-center gap-2">
-              <DollarSign className="w-5 h-5 text-emerald-400" />
-              <span>Monthly Inflows & Revenue</span>
-            </h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div>
-                <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider block mb-2">
-                  Primary Take-Home Salary (₹ / Month)
-                </label>
-                <input
-                  type="number"
-                  value={formData.salary_income}
-                  onChange={(e) => handleInputChange('salary_income', e.target.value)}
-                  className="w-full bg-slate-900/90 border border-slate-700 rounded-xl px-4 py-3 text-slate-100 font-mono text-base focus:border-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-400"
-                />
-                <span className="text-[11px] text-slate-400 mt-1 block">Net in-hand salary credited after taxes</span>
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider block mb-2">
-                  Other / Freelance / Rental Income (₹ / Month)
-                </label>
-                <input
-                  type="number"
-                  value={formData.other_income}
-                  onChange={(e) => handleInputChange('other_income', e.target.value)}
-                  className="w-full bg-slate-900/90 border border-slate-700 rounded-xl px-4 py-3 text-slate-100 font-mono text-base focus:border-cyan-400 focus:outline-none focus:ring-1 focus:ring-cyan-400"
-                />
-                <span className="text-[11px] text-slate-400 mt-1 block">Secondary recurring inflows</span>
-              </div>
+        {/* Tab 1: Monthly Inflow */}
+        {activeTab === 'inflow' && (
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div>
+              <label className="tech-label block mb-2 text-slate-300">Primary Monthly Salary</label>
+              <input
+                type="number"
+                value={formData.salary_income}
+                onChange={(e) => handleInputChange('salary_income', Number(e.target.value))}
+                className="w-full bg-obsidian-900 border border-white/[0.12] rounded-md px-4 py-2.5 text-white font-mono text-sm focus:border-mint-400 focus:outline-none"
+              />
             </div>
-
-            <div className="p-4 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center justify-between">
-              <span className="text-sm font-semibold text-slate-300">Total Monthly Inflow</span>
-              <span className="text-xl font-mono font-bold text-emerald-400">
-                {formatFullCurrency(formData.salary_income + formData.other_income, currency)}
-              </span>
+            <div>
+              <label className="tech-label block mb-2 text-slate-300">Other Monthly Inflows</label>
+              <input
+                type="number"
+                value={formData.other_income}
+                onChange={(e) => handleInputChange('other_income', Number(e.target.value))}
+                className="w-full bg-obsidian-900 border border-white/[0.12] rounded-md px-4 py-2.5 text-white font-mono text-sm focus:border-mint-400 focus:outline-none"
+              />
             </div>
           </div>
         )}
 
-        {/* Tab 2: Expenses */}
-        {activeTab === 'expenses' && (
-          <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-slate-800 space-y-6 animate-in fade-in duration-200">
-            <h3 className="text-lg font-bold text-slate-100 flex items-center gap-2">
-              <TrendingDown className="w-5 h-5 text-amber-400" />
-              <span>Monthly Expense Breakdown</span>
-            </h3>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-              <div>
-                <label className="text-xs font-semibold text-slate-300 block mb-2">House Rent / Maintenance</label>
-                <input
-                  type="number"
-                  value={formData.rent_expense}
-                  onChange={(e) => handleInputChange('rent_expense', e.target.value)}
-                  className="w-full bg-slate-900/90 border border-slate-700 rounded-xl px-4 py-2.5 text-slate-100 font-mono text-sm focus:border-cyan-400 focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold text-slate-300 block mb-2">Groceries & Dining</label>
-                <input
-                  type="number"
-                  value={formData.food_expense}
-                  onChange={(e) => handleInputChange('food_expense', e.target.value)}
-                  className="w-full bg-slate-900/90 border border-slate-700 rounded-xl px-4 py-2.5 text-slate-100 font-mono text-sm focus:border-cyan-400 focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold text-slate-300 block mb-2">Transport & Fuel</label>
-                <input
-                  type="number"
-                  value={formData.transport_expense}
-                  onChange={(e) => handleInputChange('transport_expense', e.target.value)}
-                  className="w-full bg-slate-900/90 border border-slate-700 rounded-xl px-4 py-2.5 text-slate-100 font-mono text-sm focus:border-cyan-400 focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold text-slate-300 block mb-2">Electricity, Water, Wi-Fi</label>
-                <input
-                  type="number"
-                  value={formData.utilities_expense}
-                  onChange={(e) => handleInputChange('utilities_expense', e.target.value)}
-                  className="w-full bg-slate-900/90 border border-slate-700 rounded-xl px-4 py-2.5 text-slate-100 font-mono text-sm focus:border-cyan-400 focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold text-slate-300 block mb-2">OTT & Subscriptions</label>
-                <input
-                  type="number"
-                  value={formData.subscriptions_expense}
-                  onChange={(e) => handleInputChange('subscriptions_expense', e.target.value)}
-                  className="w-full bg-slate-900/90 border border-slate-700 rounded-xl px-4 py-2.5 text-slate-100 font-mono text-sm focus:border-cyan-400 focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold text-slate-300 block mb-2">Discretionary / Misc</label>
-                <input
-                  type="number"
-                  value={formData.other_expenses}
-                  onChange={(e) => handleInputChange('other_expenses', e.target.value)}
-                  className="w-full bg-slate-900/90 border border-slate-700 rounded-xl px-4 py-2.5 text-slate-100 font-mono text-sm focus:border-cyan-400 focus:outline-none"
-                />
-              </div>
+        {/* Tab 2: Monthly Outflow */}
+        {activeTab === 'outflow' && (
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            <div>
+              <label className="tech-label block mb-2 text-slate-300">Rent / Housing</label>
+              <input
+                type="number"
+                value={formData.rent_expense}
+                onChange={(e) => handleInputChange('rent_expense', Number(e.target.value))}
+                className="w-full bg-obsidian-900 border border-white/[0.12] rounded-md px-4 py-2.5 text-white font-mono text-sm focus:border-mint-400 focus:outline-none"
+              />
             </div>
-
-            <div className="p-4 rounded-xl bg-slate-900/80 border border-slate-800 flex items-center justify-between">
-              <span className="text-sm font-semibold text-slate-300">Total Monthly Outflows</span>
-              <span className="text-xl font-mono font-bold text-amber-400">
-                {formatFullCurrency(
-                  formData.rent_expense +
-                    formData.food_expense +
-                    formData.transport_expense +
-                    formData.utilities_expense +
-                    formData.subscriptions_expense +
-                    formData.other_expenses,
-                  currency
-                )}
-              </span>
+            <div>
+              <label className="tech-label block mb-2 text-slate-300">Food & Dining</label>
+              <input
+                type="number"
+                value={formData.food_expense}
+                onChange={(e) => handleInputChange('food_expense', Number(e.target.value))}
+                className="w-full bg-obsidian-900 border border-white/[0.12] rounded-md px-4 py-2.5 text-white font-mono text-sm focus:border-mint-400 focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="tech-label block mb-2 text-slate-300">Transport & Fuel</label>
+              <input
+                type="number"
+                value={formData.transport_expense}
+                onChange={(e) => handleInputChange('transport_expense', Number(e.target.value))}
+                className="w-full bg-obsidian-900 border border-white/[0.12] rounded-md px-4 py-2.5 text-white font-mono text-sm focus:border-mint-400 focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="tech-label block mb-2 text-slate-300">Utilities & Bills</label>
+              <input
+                type="number"
+                value={formData.utilities_expense}
+                onChange={(e) => handleInputChange('utilities_expense', Number(e.target.value))}
+                className="w-full bg-obsidian-900 border border-white/[0.12] rounded-md px-4 py-2.5 text-white font-mono text-sm focus:border-mint-400 focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="tech-label block mb-2 text-slate-300">Subscriptions</label>
+              <input
+                type="number"
+                value={formData.subscriptions_expense}
+                onChange={(e) => handleInputChange('subscriptions_expense', Number(e.target.value))}
+                className="w-full bg-obsidian-900 border border-white/[0.12] rounded-md px-4 py-2.5 text-white font-mono text-sm focus:border-mint-400 focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="tech-label block mb-2 text-slate-300">Other Discretionary</label>
+              <input
+                type="number"
+                value={formData.other_expenses}
+                onChange={(e) => handleInputChange('other_expenses', Number(e.target.value))}
+                className="w-full bg-obsidian-900 border border-white/[0.12] rounded-md px-4 py-2.5 text-white font-mono text-sm focus:border-mint-400 focus:outline-none"
+              />
             </div>
           </div>
         )}
 
-        {/* Tab 3: Assets */}
+        {/* Tab 3: Balance Sheet Assets */}
         {activeTab === 'assets' && (
-          <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-slate-800 space-y-6 animate-in fade-in duration-200">
-            <h3 className="text-lg font-bold text-slate-100 flex items-center gap-2">
-              <PiggyBank className="w-5 h-5 text-cyan-400" />
-              <span>Liquid Assets & Portfolio Reserves</span>
-            </h3>
-
-            <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-5">
-              <div>
-                <label className="text-xs font-semibold text-slate-300 block mb-2">Liquid Savings Bank Balance</label>
-                <input
-                  type="number"
-                  value={formData.bank_savings}
-                  onChange={(e) => handleInputChange('bank_savings', e.target.value)}
-                  className="w-full bg-slate-900/90 border border-slate-700 rounded-xl px-4 py-2.5 text-slate-100 font-mono text-sm focus:border-cyan-400 focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold text-slate-300 block mb-2">Dedicated Emergency Fund</label>
-                <input
-                  type="number"
-                  value={formData.emergency_fund}
-                  onChange={(e) => handleInputChange('emergency_fund', e.target.value)}
-                  className="w-full bg-slate-900/90 border border-slate-700 rounded-xl px-4 py-2.5 text-slate-100 font-mono text-sm focus:border-cyan-400 focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold text-slate-300 block mb-2">Direct Stocks / Equities</label>
-                <input
-                  type="number"
-                  value={formData.stocks_equity}
-                  onChange={(e) => handleInputChange('stocks_equity', e.target.value)}
-                  className="w-full bg-slate-900/90 border border-slate-700 rounded-xl px-4 py-2.5 text-slate-100 font-mono text-sm focus:border-cyan-400 focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold text-slate-300 block mb-2">Mutual Funds Portfolio</label>
-                <input
-                  type="number"
-                  value={formData.mutual_funds}
-                  onChange={(e) => handleInputChange('mutual_funds', e.target.value)}
-                  className="w-full bg-slate-900/90 border border-slate-700 rounded-xl px-4 py-2.5 text-slate-100 font-mono text-sm focus:border-cyan-400 focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold text-slate-300 block mb-2">Fixed Deposits (FD)</label>
-                <input
-                  type="number"
-                  value={formData.fixed_deposits}
-                  onChange={(e) => handleInputChange('fixed_deposits', e.target.value)}
-                  className="w-full bg-slate-900/90 border border-slate-700 rounded-xl px-4 py-2.5 text-slate-100 font-mono text-sm focus:border-cyan-400 focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold text-slate-300 block mb-2">Gold / Sovereign Gold Bonds</label>
-                <input
-                  type="number"
-                  value={formData.gold_assets}
-                  onChange={(e) => handleInputChange('gold_assets', e.target.value)}
-                  className="w-full bg-slate-900/90 border border-slate-700 rounded-xl px-4 py-2.5 text-slate-100 font-mono text-sm focus:border-cyan-400 focus:outline-none"
-                />
-              </div>
+          <div className="grid grid-cols-1 sm:grid-cols-3 gap-6">
+            <div>
+              <label className="tech-label block mb-2 text-slate-300">Emergency Fund</label>
+              <input
+                type="number"
+                value={formData.emergency_fund}
+                onChange={(e) => handleInputChange('emergency_fund', Number(e.target.value))}
+                className="w-full bg-obsidian-900 border border-white/[0.12] rounded-md px-4 py-2.5 text-white font-mono text-sm focus:border-mint-400 focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="tech-label block mb-2 text-slate-300">Direct Equities / Stocks</label>
+              <input
+                type="number"
+                value={formData.stocks_equity}
+                onChange={(e) => handleInputChange('stocks_equity', Number(e.target.value))}
+                className="w-full bg-obsidian-900 border border-white/[0.12] rounded-md px-4 py-2.5 text-white font-mono text-sm focus:border-mint-400 focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="tech-label block mb-2 text-slate-300">Mutual Funds</label>
+              <input
+                type="number"
+                value={formData.mutual_funds}
+                onChange={(e) => handleInputChange('mutual_funds', Number(e.target.value))}
+                className="w-full bg-obsidian-900 border border-white/[0.12] rounded-md px-4 py-2.5 text-white font-mono text-sm focus:border-mint-400 focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="tech-label block mb-2 text-slate-300">Fixed Deposits</label>
+              <input
+                type="number"
+                value={formData.fixed_deposits}
+                onChange={(e) => handleInputChange('fixed_deposits', Number(e.target.value))}
+                className="w-full bg-obsidian-900 border border-white/[0.12] rounded-md px-4 py-2.5 text-white font-mono text-sm focus:border-mint-400 focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="tech-label block mb-2 text-slate-300">Gold / SGBs</label>
+              <input
+                type="number"
+                value={formData.gold_assets}
+                onChange={(e) => handleInputChange('gold_assets', Number(e.target.value))}
+                className="w-full bg-obsidian-900 border border-white/[0.12] rounded-md px-4 py-2.5 text-white font-mono text-sm focus:border-mint-400 focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="tech-label block mb-2 text-slate-300">Liquid Cash Balance</label>
+              <input
+                type="number"
+                value={formData.cash_balance}
+                onChange={(e) => handleInputChange('cash_balance', Number(e.target.value))}
+                className="w-full bg-obsidian-900 border border-white/[0.12] rounded-md px-4 py-2.5 text-white font-mono text-sm focus:border-mint-400 focus:outline-none"
+              />
             </div>
           </div>
         )}
 
-        {/* Tab 4: Liabilities */}
+        {/* Tab 4: Liabilities & Debt */}
         {activeTab === 'liabilities' && (
-          <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-slate-800 space-y-6 animate-in fade-in duration-200">
-            <h3 className="text-lg font-bold text-slate-100 flex items-center gap-2">
-              <CreditCard className="w-5 h-5 text-rose-400" />
-              <span>Liabilities, Loans & Borrowings</span>
-            </h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-              <div className="p-4 rounded-2xl bg-slate-900/70 border border-slate-800 space-y-3">
-                <span className="text-xs font-bold text-rose-400 uppercase tracking-wider block">
-                  Revolving Credit Card Debt (Highest Carry Cost)
-                </span>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="text-[11px] text-slate-400 block mb-1">Principal Amount (₹)</label>
-                    <input
-                      type="number"
-                      value={formData.credit_card_debt}
-                      onChange={(e) => handleInputChange('credit_card_debt', e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-slate-100 font-mono text-sm focus:border-cyan-400 focus:outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[11px] text-slate-400 block mb-1">Interest Rate (% APR)</label>
-                    <input
-                      type="number"
-                      step="0.5"
-                      value={formData.credit_card_rate}
-                      onChange={(e) => handleInputChange('credit_card_rate', e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-slate-100 font-mono text-sm focus:border-cyan-400 focus:outline-none"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="p-4 rounded-2xl bg-slate-900/70 border border-slate-800 space-y-3">
-                <span className="text-xs font-bold text-amber-400 uppercase tracking-wider block">
-                  Personal Loan
-                </span>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="text-[11px] text-slate-400 block mb-1">Outstanding Balance (₹)</label>
-                    <input
-                      type="number"
-                      value={formData.personal_loan}
-                      onChange={(e) => handleInputChange('personal_loan', e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-slate-100 font-mono text-sm focus:border-cyan-400 focus:outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[11px] text-slate-400 block mb-1">Interest Rate (%)</label>
-                    <input
-                      type="number"
-                      step="0.1"
-                      value={formData.personal_loan_rate}
-                      onChange={(e) => handleInputChange('personal_loan_rate', e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-slate-100 font-mono text-sm focus:border-cyan-400 focus:outline-none"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="p-4 rounded-2xl bg-slate-900/70 border border-slate-800 space-y-3">
-                <span className="text-xs font-bold text-blue-400 uppercase tracking-wider block">
-                  Auto / Vehicle Loan
-                </span>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="text-[11px] text-slate-400 block mb-1">Outstanding Balance (₹)</label>
-                    <input
-                      type="number"
-                      value={formData.vehicle_loan}
-                      onChange={(e) => handleInputChange('vehicle_loan', e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-slate-100 font-mono text-sm focus:border-cyan-400 focus:outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[11px] text-slate-400 block mb-1">Interest Rate (%)</label>
-                    <input
-                      type="number"
-                      step="0.1"
-                      value={formData.vehicle_loan_rate}
-                      onChange={(e) => handleInputChange('vehicle_loan_rate', e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-slate-100 font-mono text-sm focus:border-cyan-400 focus:outline-none"
-                    />
-                  </div>
-                </div>
-              </div>
-
-              <div className="p-4 rounded-2xl bg-slate-900/70 border border-slate-800 space-y-3">
-                <span className="text-xs font-bold text-purple-400 uppercase tracking-wider block">
-                  Home Loan / Mortgage
-                </span>
-                <div className="grid grid-cols-2 gap-3">
-                  <div>
-                    <label className="text-[11px] text-slate-400 block mb-1">Outstanding Balance (₹)</label>
-                    <input
-                      type="number"
-                      value={formData.home_loan}
-                      onChange={(e) => handleInputChange('home_loan', e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-slate-100 font-mono text-sm focus:border-cyan-400 focus:outline-none"
-                    />
-                  </div>
-                  <div>
-                    <label className="text-[11px] text-slate-400 block mb-1">Interest Rate (%)</label>
-                    <input
-                      type="number"
-                      step="0.1"
-                      value={formData.home_loan_rate}
-                      onChange={(e) => handleInputChange('home_loan_rate', e.target.value)}
-                      className="w-full bg-slate-900 border border-slate-700 rounded-xl px-3 py-2 text-slate-100 font-mono text-sm focus:border-cyan-400 focus:outline-none"
-                    />
-                  </div>
-                </div>
-              </div>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div>
+              <label className="tech-label block mb-2 text-crimson-400">Credit Card Debt Balance</label>
+              <input
+                type="number"
+                value={formData.credit_card_debt}
+                onChange={(e) => handleInputChange('credit_card_debt', Number(e.target.value))}
+                className="w-full bg-obsidian-900 border border-crimson-500/30 rounded-md px-4 py-2.5 text-white font-mono text-sm focus:border-crimson-400 focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="tech-label block mb-2 text-crimson-400">Credit Card APR (%)</label>
+              <input
+                type="number"
+                value={formData.credit_card_rate}
+                onChange={(e) => handleInputChange('credit_card_rate', Number(e.target.value))}
+                className="w-full bg-obsidian-900 border border-crimson-500/30 rounded-md px-4 py-2.5 text-white font-mono text-sm focus:border-crimson-400 focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="tech-label block mb-2 text-slate-300">Personal Loan Balance</label>
+              <input
+                type="number"
+                value={formData.personal_loan}
+                onChange={(e) => handleInputChange('personal_loan', Number(e.target.value))}
+                className="w-full bg-obsidian-900 border border-white/[0.12] rounded-md px-4 py-2.5 text-white font-mono text-sm focus:border-mint-400 focus:outline-none"
+              />
+            </div>
+            <div>
+              <label className="tech-label block mb-2 text-slate-300">Personal Loan Rate (%)</label>
+              <input
+                type="number"
+                value={formData.personal_loan_rate}
+                onChange={(e) => handleInputChange('personal_loan_rate', Number(e.target.value))}
+                className="w-full bg-obsidian-900 border border-white/[0.12] rounded-md px-4 py-2.5 text-white font-mono text-sm focus:border-mint-400 focus:outline-none"
+              />
             </div>
           </div>
         )}
 
-        {/* Tab 5: SIP */}
+        {/* Tab 5: Systematic SIPs */}
         {activeTab === 'sip' && (
-          <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-slate-800 space-y-6 animate-in fade-in duration-200">
-            <h3 className="text-lg font-bold text-slate-100 flex items-center gap-2">
-              <TrendingUp className="w-5 h-5 text-cyan-400" />
-              <span>Systematic Investment Plan (SIP)</span>
-            </h3>
-
-            <div className="max-w-md">
-              <label className="text-xs font-semibold text-slate-300 uppercase tracking-wider block mb-2">
-                Monthly Mutual Fund SIP Commitment (₹)
-              </label>
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div>
+              <label className="tech-label block mb-2 text-slate-300">Active Monthly SIP</label>
               <input
                 type="number"
                 value={formData.monthly_sip}
-                onChange={(e) => handleInputChange('monthly_sip', e.target.value)}
-                className="w-full bg-slate-900/90 border border-slate-700 rounded-xl px-4 py-3 text-slate-100 font-mono text-base focus:border-cyan-400 focus:outline-none"
+                onChange={(e) => handleInputChange('monthly_sip', Number(e.target.value))}
+                className="w-full bg-obsidian-900 border border-white/[0.12] rounded-md px-4 py-2.5 text-white font-mono text-sm focus:border-mint-400 focus:outline-none"
               />
-              <span className="text-[11px] text-slate-400 mt-1 block">
-                Automatically deducted monthly for equity & debt funds
-              </span>
+            </div>
+            <div>
+              <label className="tech-label block mb-2 text-slate-300">Emergency Target Months</label>
+              <input
+                type="number"
+                value={formData.emergency_target_months}
+                onChange={(e) => handleInputChange('emergency_target_months', Number(e.target.value))}
+                className="w-full bg-obsidian-900 border border-white/[0.12] rounded-md px-4 py-2.5 text-white font-mono text-sm focus:border-mint-400 focus:outline-none"
+              />
             </div>
           </div>
         )}
 
-        {/* Tab 6: Risk */}
+        {/* Tab 6: Risk & Horizon */}
         {activeTab === 'risk' && (
-          <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-slate-800 space-y-6 animate-in fade-in duration-200">
-            <h3 className="text-lg font-bold text-slate-100 flex items-center gap-2">
-              <Shield className="w-5 h-5 text-purple-400" />
-              <span>Risk Tolerance & Strategy Preferences</span>
-            </h3>
-
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-              {[
-                {
-                  id: 'conservative',
-                  title: 'Conservative',
-                  desc: 'Capital preservation priority. Low tolerance for drawdown. Maximum debt & fixed income bias.'
-                },
-                {
-                  id: 'moderate',
-                  title: 'Moderate',
-                  desc: 'Balanced growth. Comfortable with normal market cycles. Balanced equity & debt mix.'
-                },
-                {
-                  id: 'aggressive',
-                  title: 'Aggressive',
-                  desc: 'High compounding growth focus. 7+ year horizon. Comfortable with 25%+ market volatility.'
-                }
-              ].map((r) => (
-                <div
-                  key={r.id}
-                  onClick={() => setFormData((prev) => ({ ...prev, risk_tolerance: r.id as any }))}
-                  className={`p-5 rounded-2xl border cursor-pointer transition-all ${
-                    formData.risk_tolerance === r.id
-                      ? 'bg-cyan-500/15 border-cyan-500/40 shadow-glow-cyan'
-                      : 'bg-slate-900/60 border-slate-800 hover:border-slate-700'
-                  }`}
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <span className="text-base font-bold text-slate-100">{r.title}</span>
-                    {formData.risk_tolerance === r.id && (
-                      <CheckCircle className="w-4 h-4 text-cyan-400" />
-                    )}
-                  </div>
-                  <p className="text-xs text-slate-400 leading-relaxed">{r.desc}</p>
-                </div>
-              ))}
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-6">
+            <div>
+              <label className="tech-label block mb-2 text-slate-300">Stated Risk Tolerance</label>
+              <select
+                value={formData.risk_tolerance}
+                onChange={(e) => handleInputChange('risk_tolerance', e.target.value)}
+                className="w-full bg-obsidian-900 border border-white/[0.12] rounded-md px-4 py-2.5 text-white font-mono text-sm focus:border-mint-400 focus:outline-none"
+              >
+                <option value="conservative">Conservative</option>
+                <option value="moderate">Moderate</option>
+                <option value="aggressive">Aggressive</option>
+              </select>
             </div>
-
-            <div className="grid grid-cols-1 md:grid-cols-2 gap-6 pt-4 border-t border-slate-800">
-              <div>
-                <label className="text-xs font-semibold text-slate-300 block mb-2">
-                  Target Emergency Reserve (Months of Living Expenses)
-                </label>
-                <input
-                  type="number"
-                  value={formData.emergency_target_months}
-                  onChange={(e) => handleInputChange('emergency_target_months', e.target.value)}
-                  className="w-full bg-slate-900/90 border border-slate-700 rounded-xl px-4 py-2.5 text-slate-100 font-mono text-sm focus:border-cyan-400 focus:outline-none"
-                />
-              </div>
-
-              <div>
-                <label className="text-xs font-semibold text-slate-300 block mb-2">
-                  Primary Investment Horizon (Years)
-                </label>
-                <input
-                  type="number"
-                  value={formData.investment_horizon_years}
-                  onChange={(e) => handleInputChange('investment_horizon_years', e.target.value)}
-                  className="w-full bg-slate-900/90 border border-slate-700 rounded-xl px-4 py-2.5 text-slate-100 font-mono text-sm focus:border-cyan-400 focus:outline-none"
-                />
-              </div>
+            <div>
+              <label className="tech-label block mb-2 text-slate-300">Investment Horizon (Years)</label>
+              <input
+                type="number"
+                value={formData.investment_horizon_years}
+                onChange={(e) => handleInputChange('investment_horizon_years', Number(e.target.value))}
+                className="w-full bg-obsidian-900 border border-white/[0.12] rounded-md px-4 py-2.5 text-white font-mono text-sm focus:border-mint-400 focus:outline-none"
+              />
             </div>
           </div>
         )}
 
-        {/* Action Button at bottom */}
-        <div className="flex justify-end gap-3 pt-4">
+        <div className="pt-4 border-t border-white/[0.08] flex justify-end">
           <button
             type="submit"
             disabled={isLoading}
-            className="px-6 py-3 rounded-xl bg-gradient-to-r from-cyan-500 to-blue-600 hover:from-cyan-400 hover:to-blue-500 text-slate-950 font-bold text-sm shadow-glow-cyan transition-all flex items-center gap-2"
+            className="px-6 py-2.5 rounded-md bg-mint-500 hover:bg-mint-400 text-obsidian-950 font-mono font-bold text-xs shadow-mint-glow transition-all"
           >
-            <Save className="w-4 h-4" />
-            <span>Save Digital Twin</span>
+            Save & Update Digital Twin
           </button>
         </div>
       </form>

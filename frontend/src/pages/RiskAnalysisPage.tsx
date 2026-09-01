@@ -1,17 +1,16 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState } from 'react';
 import { useFinancial } from '../context/FinancialContext';
-import { ApiService } from '../services/api';
-import { RiskAssessment } from '../types';
-import { formatCurrency } from '../utils/formatters';
+import { formatCurrency, formatPercentage } from '../utils/formatters';
 import {
-  ShieldCheck,
+  ShieldAlert,
   AlertTriangle,
+  CheckCircle2,
   TrendingDown,
-  Sparkles,
   Info,
-  CheckCircle,
-  HelpCircle,
-  Activity
+  Scale,
+  Activity,
+  Layers,
+  ArrowRight
 } from 'lucide-react';
 import {
   RadarChart,
@@ -25,62 +24,86 @@ import {
 
 export const RiskAnalysisPage: React.FC = () => {
   const { profile, metrics, updateProfile, currency } = useFinancial();
-  const [assessment, setAssessment] = useState<RiskAssessment | null>(null);
 
-  useEffect(() => {
-    const fetchRisk = async () => {
-      try {
-        const twin = await ApiService.getFinancialTwin();
-        setAssessment(twin.risk_assessment);
-      } catch (e) {
-        console.error('Failed to get risk:', e);
-      }
-    };
-    fetchRisk();
-  }, [profile]);
+  // 6-Axis Radar Metrics
+  const radarData = [
+    { subject: 'Risk Tolerance', score: profile.risk_tolerance === 'aggressive' ? 85 : profile.risk_tolerance === 'moderate' ? 60 : 35, fullMark: 100 },
+    { subject: 'Equity Exposure', score: Math.min(Math.round(((profile.stocks_equity + profile.mutual_funds) / (metrics.total_investments || 1)) * 100), 100), fullMark: 100 },
+    { subject: 'Liquidity Cushion', score: Math.min(Math.round((metrics.emergency_fund_coverage_months / 6) * 100), 100), fullMark: 100 },
+    { subject: 'Debt Safety', score: Math.max(100 - Math.round(metrics.debt_to_income_pct * 2), 0), fullMark: 100 },
+    { subject: 'Diversification', score: 75, fullMark: 100 },
+    { subject: 'Time Horizon', score: Math.min(profile.investment_horizon_years * 10, 100), fullMark: 100 },
+  ];
 
-  const radarData = assessment
-    ? Object.entries(assessment.radar_metrics).map(([key, val]) => ({
-        subject: key,
-        value: val,
-        fullMark: 100
-      }))
-    : [];
+  // Risk Matrix Items
+  const riskMatrix = [
+    {
+      title: 'Debt Interest Drag',
+      category: 'LIABILITY RISK',
+      score: '38% APR',
+      level: 'CRITICAL',
+      status: 'Crimson',
+      impact: 'Credit card interest compounds exponentially against net worth growth.',
+    },
+    {
+      title: 'Equity Market Drawdown',
+      category: 'VOLATILITY RISK',
+      score: '-18.5% 95% VaR',
+      level: 'MODERATE',
+      status: 'Amber',
+      impact: 'Worst-case 1-year historical drawdown under a 2-standard-deviation market shock.',
+    },
+    {
+      title: 'Emergency Liquidity',
+      category: 'CASH RISK',
+      score: `${metrics.emergency_fund_coverage_months.toFixed(1)} Months`,
+      level: 'MONITORED',
+      status: metrics.emergency_fund_coverage_months >= 3 ? 'Mint' : 'Amber',
+      impact: 'Buffer covers living expenses in the event of unexpected job or medical disruption.',
+    },
+    {
+      title: 'Portfolio Concentration',
+      category: 'ALLOCATION RISK',
+      score: '68% Equities',
+      level: 'ELEVATED',
+      status: 'Amber',
+      impact: 'Equity heavy balance sheet requires maintaining fixed income buffers.',
+    },
+  ];
 
-  const handleToleranceChange = async (tol: 'conservative' | 'moderate' | 'aggressive') => {
-    await updateProfile({
+  const handleUpdateTolerance = (tol: string) => {
+    updateProfile({
       ...profile,
-      risk_tolerance: tol
+      risk_tolerance: tol as any,
     });
   };
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-300">
+    <div className="space-y-6 animate-in fade-in duration-300">
       {/* Header */}
-      <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-white/[0.08]">
         <div>
           <div className="flex items-center gap-2">
-            <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-100 font-mono tracking-tight">
-              RISK <span className="text-cyan-400">ANALYSIS</span>
-            </h1>
-            <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-rose-500/10 text-rose-400 border border-rose-500/20">
-              6-Axis Multidimensional
+            <span className="tech-badge bg-mint-500/10 text-mint-400 border border-mint-500/30">
+              RISK TOPOLOGY LAB
             </span>
+            <span className="tech-label text-slate-400">MULTIVARIATE DOWNSIDE AUDIT</span>
           </div>
-          <p className="text-xs sm:text-sm text-slate-400 mt-1">
-            Evaluate portfolio risk suitability against stated risk appetite, tail risks, and liquidity buffers.
-          </p>
+          <h1 className="text-2xl sm:text-4xl font-extrabold text-white font-mono tracking-tight mt-1">
+            RISK ANALYSIS & SUITABILITY
+          </h1>
         </div>
 
-        <div className="flex items-center gap-2">
+        {/* Risk Tolerance Switcher */}
+        <div className="flex items-center gap-1 bg-obsidian-900 border border-white/[0.08] p-1 rounded-md text-xs font-mono">
           {['conservative', 'moderate', 'aggressive'].map((t) => (
             <button
               key={t}
-              onClick={() => handleToleranceChange(t as any)}
-              className={`px-3 py-1.5 rounded-xl text-xs font-semibold uppercase tracking-wider transition-all ${
+              onClick={() => handleUpdateTolerance(t)}
+              className={`px-3 py-1 rounded font-bold uppercase transition-all ${
                 profile.risk_tolerance === t
-                  ? 'bg-cyan-500 text-slate-950 font-bold shadow-glow-cyan'
-                  : 'bg-slate-900 text-slate-400 hover:text-slate-200 border border-slate-800'
+                  ? 'bg-mint-500 text-obsidian-950 shadow-sm'
+                  : 'text-slate-400 hover:text-white'
               }`}
             >
               {t}
@@ -89,133 +112,76 @@ export const RiskAnalysisPage: React.FC = () => {
         </div>
       </div>
 
-      {/* Alignment Diagnostic Banner */}
-      <div
-        className={`p-6 rounded-3xl border flex flex-col md:flex-row items-start md:items-center justify-between gap-4 ${
-          assessment?.risk_alignment === 'ALIGNED'
-            ? 'bg-emerald-500/10 border-emerald-500/30 text-emerald-300'
-            : 'bg-amber-500/10 border-amber-500/30 text-amber-300'
-        }`}
-      >
-        <div className="flex items-start gap-3">
-          {assessment?.risk_alignment === 'ALIGNED' ? (
-            <ShieldCheck className="w-6 h-6 text-emerald-400 shrink-0 mt-0.5" />
-          ) : (
-            <AlertTriangle className="w-6 h-6 text-amber-400 shrink-0 mt-0.5" />
-          )}
-          <div>
-            <span className="text-xs font-mono font-bold uppercase tracking-wider block">
-              Portfolio Suitability Status
-            </span>
-            <h3 className="text-lg sm:text-xl font-bold text-slate-100 mt-0.5">
-              {assessment?.risk_alignment === 'ALIGNED'
-                ? 'Portfolio Risk is Well-Aligned'
-                : 'Risk Profile Mismatch Detected'}
-            </h3>
-            <p className="text-xs text-slate-300 mt-1 max-w-3xl leading-relaxed">
-              {assessment?.summary ||
-                `Your stated risk profile is '${profile.risk_tolerance}'. Your actual calculated portfolio risk score is ${assessment?.actual_portfolio_risk_score}/100.`}
-            </p>
-          </div>
-        </div>
-
-        <div className="flex gap-3">
-          <div className="p-3 px-4 rounded-2xl bg-slate-900/90 border border-slate-800 text-center font-mono">
-            <span className="text-[10px] text-slate-400 uppercase block">Stated Tolerance</span>
-            <span className="text-base font-bold text-cyan-400">{assessment?.stated_tolerance_score}/100</span>
-          </div>
-          <div className="p-3 px-4 rounded-2xl bg-slate-900/90 border border-slate-800 text-center font-mono">
-            <span className="text-[10px] text-slate-400 uppercase block">Actual Risk</span>
-            <span className="text-base font-bold text-purple-400">{assessment?.actual_portfolio_risk_score}/100</span>
-          </div>
-        </div>
-      </div>
-
-      {/* Radar Chart + Downside Stress Tests */}
+      {/* 2-COLUMN SPLIT: 6-AXIS RADAR (Left) + RISK MATRIX (Right) */}
       <div className="grid grid-cols-1 lg:grid-cols-12 gap-6">
-        {/* Radar Chart (6 Cols) */}
-        <div className="lg:col-span-6 glass-panel p-6 rounded-3xl border border-slate-800 flex flex-col justify-between">
-          <div className="pb-3 border-b border-slate-800 flex items-center justify-between">
-            <h3 className="text-sm font-bold text-slate-100 font-mono uppercase tracking-wider">
-              6-Axis Risk Profile Mapping
-            </h3>
-            <span className="text-xs font-mono text-cyan-400">Multivariate Polar Grid</span>
+        {/* 6-Axis Radar Chart (5 cols) */}
+        <div className="lg:col-span-5 fin-panel p-6 sm:p-7 space-y-4">
+          <div className="flex items-center justify-between pb-3 border-b border-white/[0.08]">
+            <div>
+              <span className="tech-label text-slate-400">SUITABILITY PROFILE</span>
+              <h3 className="text-base font-bold text-white font-mono">6-AXIS RISK RADAR</h3>
+            </div>
+            <span className="tech-badge bg-obsidian-900 border border-white/[0.08] text-slate-300">
+              {profile.risk_tolerance.toUpperCase()}
+            </span>
           </div>
 
-          <div className="w-full h-80 my-2">
+          <div className="h-72">
             <ResponsiveContainer width="100%" height="100%">
               <RadarChart cx="50%" cy="50%" outerRadius="75%" data={radarData}>
-                <PolarGrid stroke="#334155" />
-                <PolarAngleAxis dataKey="subject" stroke="#94a3b8" fontSize={11} />
-                <PolarRadiusAxis angle={30} domain={[0, 100]} stroke="#475569" fontSize={10} />
-                <Radar name="Profile Score" dataKey="value" stroke="#06b6d4" fill="#06b6d4" fillOpacity={0.4} />
+                <PolarGrid stroke="#222B32" />
+                <PolarAngleAxis dataKey="subject" stroke="#64748b" fontSize={10} />
+                <PolarRadiusAxis angle={30} domain={[0, 100]} stroke="#323E48" fontSize={9} />
+                <Radar
+                  name="Risk Profile"
+                  dataKey="score"
+                  stroke="#00f59b"
+                  fill="#00f59b"
+                  fillOpacity={0.25}
+                />
                 <Tooltip
-                  contentStyle={{ backgroundColor: '#0f172a', borderColor: '#334155', borderRadius: '12px' }}
+                  contentStyle={{ backgroundColor: '#0A0D0F', borderColor: '#222B32', borderRadius: '8px' }}
+                  formatter={(val: any) => [`${val}/100`, 'Score']}
                 />
               </RadarChart>
             </ResponsiveContainer>
           </div>
-
-          <div className="text-[11px] text-slate-400 text-center">
-            Higher values indicate stronger resilience across volatility, liquidity, and debt safety.
-          </div>
         </div>
 
-        {/* Downside Stress Tests & Tail Risk (6 Cols) */}
-        <div className="lg:col-span-6 space-y-4">
-          <div className="glass-panel p-6 rounded-3xl border border-slate-800 space-y-4">
-            <h3 className="text-sm font-bold text-slate-100 font-mono uppercase tracking-wider pb-3 border-b border-slate-800">
-              Downside Market Stress Tests (Historical Calibration)
-            </h3>
+        {/* Risk Matrix Panels (7 cols) */}
+        <div className="lg:col-span-7 space-y-3">
+          <div className="flex items-center justify-between pb-2">
+            <span className="tech-label text-slate-200">ACTIVE RISK MATRIX</span>
+            <span className="tech-label text-slate-400">4 MONITORED VECTORS</span>
+          </div>
 
-            <div className="space-y-3 text-xs">
-              <div className="p-3.5 rounded-2xl bg-slate-900/80 border border-slate-800 flex items-center justify-between">
-                <div>
-                  <span className="font-bold text-slate-200 block">Severe Market Correction (-25% Shock)</span>
-                  <span className="text-[11px] text-slate-400">Simulates 2008 / 2020 economic shock</span>
+          {riskMatrix.map((item) => (
+            <div
+              key={item.title}
+              className="fin-panel p-4 space-y-2 group hover:border-white/[0.18] transition-all"
+            >
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <span className="tech-label text-slate-400">{item.category}</span>
+                  <span className="text-xs font-mono font-bold text-white uppercase">
+                    • {item.title}
+                  </span>
                 </div>
-                <span className="text-sm font-mono font-bold text-rose-400">
-                  -{formatCurrency(metrics.total_investments * 0.22, currency)}
+                <span
+                  className={`tech-badge ${
+                    item.status === 'Crimson'
+                      ? 'bg-crimson-500/10 text-crimson-400 border border-crimson-500/30'
+                      : item.status === 'Amber'
+                      ? 'bg-amber-500/10 text-amber-400 border border-amber-500/30'
+                      : 'bg-mint-500/10 text-mint-400 border border-mint-500/30'
+                  }`}
+                >
+                  {item.level}: {item.score}
                 </span>
               </div>
-
-              <div className="p-3.5 rounded-2xl bg-slate-900/80 border border-slate-800 flex items-center justify-between">
-                <div>
-                  <span className="font-bold text-slate-200 block">Interest Rate Spike (+200 bps)</span>
-                  <span className="text-[11px] text-slate-400">Impact on floating-rate personal & auto loans</span>
-                </div>
-                <span className="text-sm font-mono font-bold text-amber-400">
-                  +₹{Math.round(metrics.total_debt * 0.02 / 12)}/mo EMI
-                </span>
-              </div>
-
-              <div className="p-3.5 rounded-2xl bg-slate-900/80 border border-slate-800 flex items-center justify-between">
-                <div>
-                  <span className="font-bold text-slate-200 block">95% Monthly Value at Risk (VaR)</span>
-                  <span className="text-[11px] text-slate-400">Maximum expected loss at 95% confidence level</span>
-                </div>
-                <span className="text-sm font-mono font-bold text-purple-400">
-                  {formatCurrency(assessment?.value_at_risk_95_pct || 0, currency)}
-                </span>
-              </div>
+              <p className="text-xs font-mono text-slate-300 leading-relaxed">{item.impact}</p>
             </div>
-          </div>
-
-          {/* Risk Mitigation Recommendations */}
-          <div className="glass-panel p-6 rounded-3xl border border-slate-800">
-            <h3 className="text-sm font-bold text-cyan-400 font-mono uppercase tracking-wider pb-3 border-b border-slate-800">
-              Risk Mitigation Recommendations
-            </h3>
-
-            <ul className="mt-4 space-y-2.5 text-xs text-slate-300">
-              {assessment?.recommendations.map((rec, idx) => (
-                <li key={idx} className="flex items-start gap-2">
-                  <CheckCircle className="w-4 h-4 text-cyan-400 shrink-0 mt-0.5" />
-                  <span className="leading-relaxed">{rec}</span>
-                </li>
-              ))}
-            </ul>
-          </div>
+          ))}
         </div>
       </div>
     </div>

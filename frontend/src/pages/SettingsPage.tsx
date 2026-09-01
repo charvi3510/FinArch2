@@ -3,20 +3,18 @@ import { useFinancial } from '../context/FinancialContext';
 import { ApiService } from '../services/api';
 import { MarketKnowledge } from '../types';
 import {
-  Settings,
+  Settings as SettingsIcon,
   Key,
   Database,
-  DollarSign,
-  ShieldCheck,
-  RefreshCw,
-  Server,
   BookOpen,
-  Info,
-  CheckCircle2
+  RotateCcw,
+  CheckCircle2,
+  ShieldCheck,
+  Server
 } from 'lucide-react';
 
 export const SettingsPage: React.FC = () => {
-  const { currency, setCurrency, resetDemoProfile, isBackendConnected, showToast } = useFinancial();
+  const { currency, setCurrency, resetDemoProfile, showToast } = useFinancial();
   const [apiKey, setApiKey] = useState(() => localStorage.getItem('finarch_ai_key') || '');
   const [marketKnowledge, setMarketKnowledge] = useState<MarketKnowledge | null>(null);
 
@@ -35,113 +33,110 @@ export const SettingsPage: React.FC = () => {
   const handleSaveApiKey = (e: React.FormEvent) => {
     e.preventDefault();
     localStorage.setItem('finarch_ai_key', apiKey.trim());
-    showToast('API Key Saved', 'External LLM API Key successfully configured in browser.', 'success');
+    showToast('API Key Configured', 'External LLM API Key saved in local storage.', 'success');
   };
 
   return (
-    <div className="space-y-8 animate-in fade-in duration-300">
+    <div className="space-y-6 animate-in fade-in duration-300">
       {/* Header */}
-      <div>
-        <div className="flex items-center gap-2">
-          <h1 className="text-2xl sm:text-3xl font-extrabold text-slate-100 font-mono tracking-tight">
-            SYSTEM <span className="text-cyan-400">SETTINGS</span>
+      <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-4 pb-3 border-b border-white/[0.08]">
+        <div>
+          <div className="flex items-center gap-2">
+            <span className="tech-badge bg-mint-500/10 text-mint-400 border border-mint-500/30">
+              SYSTEM CONFIGURATION
+            </span>
+            <span className="tech-label text-slate-400">PARAMETERS & KNOWLEDGE LAYER</span>
+          </div>
+          <h1 className="text-2xl sm:text-4xl font-extrabold text-white font-mono tracking-tight mt-1">
+            SETTINGS & BENCHMARKS
           </h1>
-          <span className="px-2.5 py-0.5 rounded-full text-[11px] font-semibold bg-slate-800 text-slate-300 border border-slate-700">
-            Configuration & Knowledge Layer
-          </span>
         </div>
-        <p className="text-xs sm:text-sm text-slate-400 mt-1">
-          Manage API keys, currency formatting, benchmark knowledge layers, and demo data presets.
-        </p>
       </div>
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
-        {/* LLM API Key Configuration */}
-        <div className="glass-panel p-6 sm:p-7 rounded-3xl border border-slate-800 space-y-4">
-          <div className="flex items-center gap-2.5 pb-3 border-b border-slate-800">
-            <Key className="w-5 h-5 text-cyan-400" />
-            <h3 className="text-base font-bold text-slate-100">AI Model & API Key Configuration</h3>
+        {/* LLM Key Config */}
+        <div className="fin-panel p-6 space-y-4">
+          <div className="flex items-center gap-2.5 pb-3 border-b border-white/[0.08]">
+            <Key className="w-4 h-4 text-mint-400" />
+            <h3 className="text-sm font-bold font-mono text-white">OPTIONAL LLM API CONNECTOR</h3>
           </div>
 
-          <p className="text-xs text-slate-400 leading-relaxed">
-            FINARCH AI operates 100% autonomously using its built-in deterministic financial engine without requiring external APIs. You can optionally supply an API key to enable experimental conversational LLM features.
+          <p className="text-xs font-mono text-slate-400 leading-relaxed">
+            FINARCH AI operates autonomously using its built-in deterministic engine. You can optionally supply an external OpenAI or Gemini API key to enable experimental reasoning expansions.
           </p>
 
           <form onSubmit={handleSaveApiKey} className="space-y-3 pt-2">
             <div>
-              <label className="text-xs font-semibold text-slate-300 block mb-1">
-                Optional LLM API Key (OpenAI / Gemini)
+              <label className="tech-label block mb-1 text-slate-300">
+                API Key (OpenAI sk-... or Gemini AIzaSy...)
               </label>
               <input
                 type="password"
-                placeholder="sk-... or AIzaSy..."
+                placeholder="sk-..."
                 value={apiKey}
                 onChange={(e) => setApiKey(e.target.value)}
-                className="w-full bg-slate-900 border border-slate-700 rounded-xl px-4 py-2.5 text-slate-100 font-mono text-xs focus:border-cyan-400 focus:outline-none"
+                className="w-full bg-obsidian-900 border border-white/[0.12] rounded-md px-3.5 py-2 text-white font-mono text-xs focus:border-mint-400 focus:outline-none"
               />
-              <span className="text-[10px] text-slate-400 mt-1 block">
-                Saved securely in browser local storage. Never committed or sent to third-party tracking.
-              </span>
             </div>
 
             <div className="flex justify-end">
               <button
                 type="submit"
-                className="px-4 py-2 rounded-xl bg-cyan-500 hover:bg-cyan-400 text-slate-950 font-bold text-xs shadow-glow-cyan transition-all"
+                className="px-4 py-1.5 rounded-md bg-mint-500 hover:bg-mint-400 text-obsidian-950 font-mono font-bold text-xs shadow-mint-glow transition-all"
               >
-                Save Key
+                Save API Key
               </button>
             </div>
           </form>
         </div>
 
-        {/* Preferences & Demo Profile Reset */}
-        <div className="glass-panel p-6 sm:p-7 rounded-3xl border border-slate-800 space-y-6">
-          <div className="flex items-center gap-2.5 pb-3 border-b border-slate-800">
-            <Database className="w-5 h-5 text-emerald-400" />
-            <h3 className="text-base font-bold text-slate-100">Preferences & Demo Data Management</h3>
+        {/* Currency & Demo Reset */}
+        <div className="fin-panel p-6 space-y-6">
+          <div className="flex items-center gap-2.5 pb-3 border-b border-white/[0.08]">
+            <Database className="w-4 h-4 text-cyan-400" />
+            <h3 className="text-sm font-bold font-mono text-white">PREFERENCES & BENCHMARK RESET</h3>
           </div>
 
           <div>
-            <label className="text-xs font-semibold text-slate-300 block mb-2">Display Currency</label>
+            <label className="tech-label block mb-2 text-slate-300">Display Currency</label>
             <div className="grid grid-cols-2 gap-3">
               <button
                 type="button"
                 onClick={() => setCurrency('INR')}
-                className={`p-3 rounded-xl border text-xs font-semibold flex items-center justify-center gap-2 transition-all ${
+                className={`p-2.5 rounded-md border text-xs font-mono font-bold transition-all ${
                   currency === 'INR'
-                    ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40 shadow-glow-cyan'
-                    : 'bg-slate-900 text-slate-400 border-slate-800 hover:border-slate-700'
+                    ? 'bg-mint-500 text-obsidian-950 border-mint-500'
+                    : 'bg-obsidian-900 text-slate-400 border-white/[0.08] hover:text-white'
                 }`}
               >
-                <span>₹ Indian Rupee (INR)</span>
+                ₹ Indian Rupee (INR)
               </button>
 
               <button
                 type="button"
                 onClick={() => setCurrency('USD')}
-                className={`p-3 rounded-xl border text-xs font-semibold flex items-center justify-center gap-2 transition-all ${
+                className={`p-2.5 rounded-md border text-xs font-mono font-bold transition-all ${
                   currency === 'USD'
-                    ? 'bg-cyan-500/20 text-cyan-300 border-cyan-500/40 shadow-glow-cyan'
-                    : 'bg-slate-900 text-slate-400 border-slate-800 hover:border-slate-700'
+                    ? 'bg-mint-500 text-obsidian-950 border-mint-500'
+                    : 'bg-obsidian-900 text-slate-400 border-white/[0.08] hover:text-white'
                 }`}
               >
-                <span>$ US Dollar (USD)</span>
+                $ US Dollar (USD)
               </button>
             </div>
           </div>
 
-          <div className="pt-3 border-t border-slate-800 flex items-center justify-between">
+          <div className="pt-3 border-t border-white/[0.08] flex items-center justify-between">
             <div>
-              <span className="text-xs font-bold text-slate-200 block">Reset Demo Profile</span>
-              <span className="text-[11px] text-slate-400">Restore default ₹1.2L income & ₹3L debt benchmark user.</span>
+              <span className="text-xs font-bold font-mono text-white block">Reset Demo Twin</span>
+              <span className="text-[10px] font-mono text-slate-400">Restore benchmark salary & debt profile.</span>
             </div>
 
             <button
               onClick={resetDemoProfile}
-              className="px-4 py-2 rounded-xl bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs font-semibold transition-colors flex items-center gap-1.5"
+              className="px-3.5 py-1.5 rounded-md bg-obsidian-900 hover:bg-obsidian-850 border border-white/[0.12] text-slate-200 text-xs font-mono transition-colors flex items-center gap-1.5"
             >
-              <RefreshCw className="w-3.5 h-3.5" />
+              <RotateCcw className="w-3 h-3 text-mint-400" />
               <span>Reset</span>
             </button>
           </div>
@@ -149,64 +144,29 @@ export const SettingsPage: React.FC = () => {
       </div>
 
       {/* Market Knowledge Layer Section */}
-      <div className="glass-panel p-6 sm:p-8 rounded-3xl border border-slate-800 space-y-6">
-        <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-2 pb-4 border-b border-slate-800">
+      <div className="fin-panel p-6 sm:p-8 space-y-6">
+        <div className="flex flex-wrap items-center justify-between gap-2 pb-3 border-b border-white/[0.08]">
           <div className="flex items-center gap-2">
-            <BookOpen className="w-5 h-5 text-cyan-400" />
-            <h3 className="text-base font-bold text-slate-100 font-mono uppercase tracking-wider">
-              Market & Regulatory Knowledge Layer
+            <BookOpen className="w-4 h-4 text-mint-400" />
+            <h3 className="text-sm font-bold font-mono text-white uppercase">
+              MARKET KNOWLEDGE & BENCHMARKS
             </h3>
           </div>
-          <span className="px-2.5 py-0.5 rounded-full text-[10px] font-mono font-bold bg-amber-500/10 text-amber-400 border border-amber-500/20">
-            {marketKnowledge?.badge || 'Demo Data - Simulated Benchmarks'}
+          <span className="tech-badge bg-obsidian-900 border border-white/[0.08] text-slate-400">
+            {marketKnowledge?.badge || 'Simulated Benchmark Data'}
           </span>
         </div>
 
-        {/* Regulatory Bodies Cards */}
+        {/* Regulatory Bodies */}
         <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
           {marketKnowledge?.regulatory_bodies.map((reg) => (
-            <div key={reg.name} className="p-4 rounded-2xl bg-slate-900/80 border border-slate-800 text-xs space-y-1">
-              <span className="font-bold text-slate-100 block">{reg.name}</span>
-              {reg.key_rate && <span className="text-cyan-400 block font-mono">{reg.key_rate}</span>}
+            <div key={reg.name} className="p-3.5 rounded-md bg-obsidian-900 border border-white/[0.06] text-xs font-mono space-y-1">
+              <span className="font-bold text-white block">{reg.name}</span>
+              {reg.key_rate && <span className="text-mint-400 block">{reg.key_rate}</span>}
               {reg.framework && <span className="text-slate-400 block">{reg.framework}</span>}
-              {reg.industry_aum && <span className="text-emerald-400 block font-mono">AUM: {reg.industry_aum}</span>}
+              {reg.industry_aum && <span className="text-cyan-400 block">AUM: {reg.industry_aum}</span>}
             </div>
           ))}
-        </div>
-
-        {/* Benchmark Historical Returns Table */}
-        <div>
-          <span className="text-xs font-bold text-slate-300 font-mono uppercase tracking-wider block mb-3">
-            Simulated Historical Benchmark Returns
-          </span>
-          <div className="overflow-x-auto">
-            <table className="w-full text-left text-xs text-slate-300">
-              <thead className="bg-slate-900/80 text-[10px] uppercase font-mono text-slate-400">
-                <tr>
-                  <th className="p-3 rounded-l-xl">Asset Class</th>
-                  <th className="p-3">5Y CAGR</th>
-                  <th className="p-3">10Y CAGR</th>
-                  <th className="p-3">Annual Volatility</th>
-                  <th className="p-3 rounded-r-xl">Risk Classification</th>
-                </tr>
-              </thead>
-              <tbody className="divide-y divide-slate-800/80 font-mono">
-                {marketKnowledge?.benchmark_returns_history.map((bm) => (
-                  <tr key={bm.asset_class} className="hover:bg-slate-900/40">
-                    <td className="p-3 font-sans font-semibold text-slate-200">{bm.asset_class}</td>
-                    <td className="p-3 text-emerald-400">+{bm.cagr_5y}%</td>
-                    <td className="p-3 text-cyan-400">+{bm.cagr_10y}%</td>
-                    <td className="p-3 text-slate-400">{bm.volatility_annual}%</td>
-                    <td className="p-3">
-                      <span className="px-2 py-0.5 rounded text-[10px] font-semibold bg-slate-900 text-slate-300 border border-slate-800">
-                        {bm.risk}
-                      </span>
-                    </td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </div>
         </div>
       </div>
     </div>

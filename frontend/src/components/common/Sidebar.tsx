@@ -1,129 +1,118 @@
 import React from 'react';
-import { NavLink, Link } from 'react-router-dom';
+import { NavLink, useLocation } from 'react-router-dom';
 import {
   LayoutDashboard,
   Cpu,
-  SlidersHorizontal,
+  Sliders,
   PieChart,
   Target,
-  Sparkles,
-  ShieldCheck,
+  GitCompare,
+  ShieldAlert,
   Bot,
   Settings,
-  Flame,
-  X,
-  ExternalLink,
-  BrainCircuit
+  Activity,
+  Layers
 } from 'lucide-react';
 
-interface Props {
+interface SidebarProps {
   isOpen: boolean;
   onClose: () => void;
 }
 
-export const Sidebar: React.FC<Props> = ({ isOpen, onClose }) => {
+export const Sidebar: React.FC<SidebarProps> = ({ isOpen, onClose }) => {
+  const location = useLocation();
+
   const navItems = [
-    { name: 'Overview', path: '/overview', icon: LayoutDashboard },
-    { name: 'Financial Twin', path: '/twin', icon: BrainCircuit, badge: 'Live' },
-    { name: 'AI Decision Engine', path: '/decision', icon: Cpu, badge: 'Core' },
-    { name: 'Opportunity Optimizer', path: '/optimizer', icon: SlidersHorizontal },
-    { name: 'Portfolio', path: '/portfolio', icon: PieChart },
-    { name: 'Goals', path: '/goals', icon: Target },
-    { name: 'What-If Simulator', path: '/simulator', icon: Flame, badge: '10Y' },
-    { name: 'Risk Analysis', path: '/risk', icon: ShieldCheck },
-    { name: 'AI Advisor', path: '/advisor', icon: Bot, badge: 'Explain' },
-    { name: 'Settings', path: '/settings', icon: Settings },
+    { path: '/overview', label: 'OVERVIEW', icon: LayoutDashboard },
+    { path: '/twin', label: 'FINANCIAL TWIN', icon: Layers },
+    { path: '/decision', label: 'DECISION ENGINE', icon: Cpu, isSignature: true },
+    { path: '/optimizer', label: 'OPTIMIZER', icon: Sliders },
+    { path: '/portfolio', label: 'PORTFOLIO', icon: PieChart },
+    { path: '/goals', label: 'GOALS', icon: Target },
+    { path: '/simulator', label: 'SIMULATOR', icon: GitCompare },
+    { path: '/risk', label: 'RISK ANALYSIS', icon: ShieldAlert },
+    { path: '/advisor', label: 'AI ADVISOR', icon: Bot },
+    { path: '/settings', label: 'SETTINGS', icon: Settings },
   ];
 
   return (
     <>
-      {/* Mobile Backdrop */}
+      {/* Mobile overlay */}
       {isOpen && (
         <div
+          className="fixed inset-0 z-40 bg-black/80 backdrop-blur-sm lg:hidden"
           onClick={onClose}
-          className="fixed inset-0 z-40 bg-black/60 backdrop-blur-sm lg:hidden"
         />
       )}
 
-      {/* Sidebar Container */}
       <aside
-        className={`fixed top-0 bottom-0 left-0 z-50 w-64 bg-slate-950/95 lg:bg-slate-950/80 backdrop-blur-xl border-r border-slate-800/80 flex flex-col transition-transform duration-300 ease-in-out lg:translate-x-0 ${
+        className={`fixed top-0 bottom-0 left-0 z-50 w-64 bg-obsidian-950 border-r border-white/[0.08] flex flex-col justify-between transition-transform duration-200 ease-out lg:translate-x-0 ${
           isOpen ? 'translate-x-0' : '-translate-x-full'
         }`}
       >
         {/* Brand Header */}
-        <div className="h-16 flex items-center justify-between px-6 border-b border-slate-800/80">
-          <Link to="/landing" className="flex items-center gap-2.5 group">
-            <div className="w-8 h-8 rounded-lg bg-gradient-to-tr from-cyan-500 to-blue-600 flex items-center justify-center shadow-glow-cyan">
-              <Sparkles className="w-4 h-4 text-white" />
-            </div>
-            <div>
-              <span className="font-bold tracking-wider text-slate-100 font-mono text-base group-hover:text-cyan-400 transition-colors">
-                FINARCH<span className="text-cyan-400">.AI</span>
-              </span>
-              <span className="block text-[9px] uppercase tracking-widest text-slate-400">Autonomous Decision</span>
-            </div>
-          </Link>
+        <div>
+          <div className="p-5 border-b border-white/[0.08] flex items-center justify-between">
+            <NavLink to="/landing" className="flex items-center gap-3 group">
+              <div className="w-8 h-8 rounded-lg bg-obsidian-900 border border-mint-500/30 flex items-center justify-center text-mint-400 group-hover:border-mint-500 transition-colors">
+                <Activity className="w-4 h-4 text-mint-400" />
+              </div>
+              <div>
+                <div className="flex items-center gap-1.5">
+                  <span className="text-base font-extrabold text-white tracking-wider font-mono">FINARCH</span>
+                  <span className="text-[9px] font-mono px-1 py-0.5 rounded bg-mint-500/10 text-mint-400 border border-mint-500/20 font-bold">AI</span>
+                </div>
+                <span className="tech-label block text-[9px] text-slate-400">FINANCIAL INTELLIGENCE</span>
+              </div>
+            </NavLink>
+          </div>
 
-          <button
-            onClick={onClose}
-            className="p-1 rounded-lg text-slate-400 hover:text-white lg:hidden"
-          >
-            <X className="w-5 h-5" />
-          </button>
+          {/* Navigation Menu */}
+          <nav className="p-3 space-y-1 mt-2">
+            <div className="px-3 py-1.5 tech-label text-slate-400">COMMAND CENTER</div>
+            {navItems.map((item) => {
+              const Icon = item.icon;
+              const isActive = location.pathname === item.path;
+
+              return (
+                <NavLink
+                  key={item.path}
+                  to={item.path}
+                  onClick={onClose}
+                  className={`flex items-center justify-between px-3 py-2 rounded-md text-xs font-mono tracking-wider transition-all relative ${
+                    isActive
+                      ? 'bg-obsidian-850 text-white font-bold border-l-2 border-mint-500 pl-2.5 shadow-panel'
+                      : 'text-slate-400 hover:text-slate-200 hover:bg-obsidian-900'
+                  }`}
+                >
+                  <div className="flex items-center gap-2.5">
+                    <Icon
+                      className={`w-4 h-4 transition-colors ${
+                        isActive ? 'text-mint-400' : 'text-slate-400'
+                      }`}
+                    />
+                    <span>{item.label}</span>
+                  </div>
+
+                  {item.isSignature && (
+                    <span className="w-1.5 h-1.5 rounded-full bg-mint-500 animate-pulse"></span>
+                  )}
+                </NavLink>
+              );
+            })}
+          </nav>
         </div>
 
-        {/* Navigation Items */}
-        <nav className="flex-1 overflow-y-auto px-3 py-4 space-y-1">
-          <div className="px-3 pb-2 text-[10px] font-semibold uppercase tracking-wider text-slate-400">
-            Decision Platform
-          </div>
-
-          {navItems.map((item) => {
-            const Icon = item.icon;
-            return (
-              <NavLink
-                key={item.path}
-                to={item.path}
-                onClick={onClose}
-                className={({ isActive }) =>
-                  `flex items-center justify-between px-3.5 py-2.5 rounded-xl text-xs font-medium transition-all duration-150 ${
-                    isActive
-                      ? 'bg-cyan-500/15 text-cyan-300 border border-cyan-500/30 shadow-glow-cyan'
-                      : 'text-slate-400 hover:text-slate-200 hover:bg-slate-900/60 border border-transparent'
-                  }`
-                }
-              >
-                <div className="flex items-center gap-3">
-                  <Icon className="w-4 h-4 shrink-0" />
-                  <span>{item.name}</span>
-                </div>
-                {item.badge && (
-                  <span className="px-1.5 py-0.5 rounded text-[9px] font-mono font-semibold bg-slate-800 text-cyan-400 border border-cyan-500/20">
-                    {item.badge}
-                  </span>
-                )}
-              </NavLink>
-            );
-          })}
-        </nav>
-
-        {/* Bottom Landing / Hackathon Badge */}
-        <div className="p-4 border-t border-slate-800/80 bg-slate-950/40">
-          <Link
-            to="/landing"
-            className="flex items-center justify-between p-2.5 rounded-xl bg-slate-900/80 hover:bg-slate-900 border border-slate-800 hover:border-slate-700 text-slate-300 text-xs transition-colors"
-          >
-            <span className="flex items-center gap-2">
-              <Sparkles className="w-3.5 h-3.5 text-purple-400" />
-              <span>Landing Page</span>
+        {/* Engine Online Status Badge */}
+        <div className="p-4 border-t border-white/[0.08] bg-obsidian-900/50">
+          <div className="flex items-center justify-between text-[11px] font-mono text-slate-400">
+            <span className="tech-label text-slate-400">SYSTEM STATUS</span>
+            <span className="text-[10px] font-semibold text-mint-400 flex items-center gap-1.5">
+              <span className="w-2 h-2 rounded-full bg-mint-500 animate-ping"></span>
+              ONLINE
             </span>
-            <ExternalLink className="w-3.5 h-3.5 text-slate-400" />
-          </Link>
-
-          <div className="mt-3 text-[10px] text-center text-slate-400">
-            <span>FINARCH AI v1.0 • Hackathon Prototype</span>
           </div>
+          <p className="text-[10px] font-mono text-slate-400 mt-1">Autonomous Engine 1.0</p>
         </div>
       </aside>
     </>
