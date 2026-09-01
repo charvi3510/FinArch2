@@ -50,10 +50,10 @@ export const LandingPage: React.FC = () => {
             <div className="flex items-center gap-1.5 font-mono">
               <span className="text-base font-extrabold text-white tracking-wider">FINARCH</span>
               <span className="text-[10px] px-1.5 py-0.5 rounded bg-mint-500/10 text-mint-400 border border-mint-500/30 font-bold">
-                v1.0
+                AI
               </span>
             </div>
-            <span className="tech-label text-[9px] text-slate-400 block">AUTONOMOUS DECISION ENGINE</span>
+            <span className="tech-label text-[9px] text-slate-400 block">FINANCIAL INTELLIGENCE</span>
           </div>
         </div>
 
@@ -62,7 +62,7 @@ export const LandingPage: React.FC = () => {
             onClick={handleLoadDemo}
             className="px-3.5 py-1.5 rounded-md bg-obsidian-900 hover:bg-obsidian-850 border border-white/[0.12] text-xs font-mono text-slate-300 hover:text-white transition-all"
           >
-            VIEW DEMO
+            LOAD DEMO
           </button>
           <button
             onClick={handleEnterApp}
@@ -80,7 +80,7 @@ export const LandingPage: React.FC = () => {
         <div className="text-center max-w-4xl mx-auto space-y-4">
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-full bg-obsidian-900 border border-white/[0.08] text-[11px] font-mono text-slate-300">
             <span className="w-2 h-2 rounded-full bg-mint-500 animate-ping"></span>
-            <span>NEXT-GEN FINANCIAL INTELLIGENCE OPERATING SYSTEM</span>
+            <span>AUTONOMOUS FINANCIAL DECISION ENGINE</span>
           </div>
 
           <h1 className="text-4xl sm:text-6xl lg:text-7xl font-extrabold text-white tracking-tight leading-[1.08] font-mono">
@@ -107,7 +107,7 @@ export const LandingPage: React.FC = () => {
               onClick={handleLoadDemo}
               className="px-7 py-3.5 rounded-lg bg-obsidian-900 hover:bg-obsidian-850 border border-white/[0.15] text-slate-200 font-mono font-semibold text-sm hover:border-mint-500/40 transition-all"
             >
-              LOAD DEMO BENCHMARK
+              LOAD DEMO
             </button>
           </div>
         </div>
@@ -203,7 +203,7 @@ export const LandingPage: React.FC = () => {
           </div>
 
           <div className="grid grid-cols-1 md:grid-cols-5 gap-3">
-            {pipelineSteps.map((s, idx) => (
+            {pipelineSteps.map((s) => (
               <div
                 key={s.code}
                 className="fin-panel p-5 space-y-3 relative group hover:border-mint-500/40 transition-all"
